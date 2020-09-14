@@ -120,10 +120,14 @@ class Notebook(Product):
     time_without_charge = models.CharField(max_length=255, verbose_name='working time for battery')
 
     def __str__(self):
-        return '{} : {}'.format(self.category.name, self.title)
+        # return '{} : {}'.format(self.category.name, self.title)
+        return 'Notebook {}'.format(self.title)
 
     def get_absolute_url(self):
         return get_product_url(self, 'product_detail')
+
+    def get_query_set(self):
+        return Smartphone.objects.all().select_related('category')
 
 
 class Smartphone(Product):
@@ -138,10 +142,13 @@ class Smartphone(Product):
     frontal_cam_mp = models.CharField(max_length=255, verbose_name='frontal camera')
 
     def __str__(self):
-        return '{} : {}'.format(self.category.name, self.title)
+        return 'Smartphone : {}'.format(self.title)
 
     def get_absolute_url(self):
         return get_product_url(self, 'product_detail')
+
+    def get_query_set(self):
+        return Smartphone.objects.all().select_related('category')
 
 
 class CartProduct(models.Model):

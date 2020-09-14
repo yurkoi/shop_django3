@@ -31,6 +31,7 @@ class NotebookAdminForm(ModelForm):
 
 class NotebookAdmin(admin.ModelAdmin):
 
+    list_select_related = ('category',)
     form = NotebookAdminForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
