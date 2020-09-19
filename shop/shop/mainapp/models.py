@@ -24,6 +24,10 @@ from django.urls import reverse
 User = get_user_model()
 
 
+def get_models_for_count(*model_names):
+    return [models.Count(model_name) for model_name in model_names]
+
+
 def get_product_url(obj, viewname):
     ct_model = obj.__class__._meta.model_name
     return reverse(viewname, kwargs={'ct_model': ct_model, 'slug': obj.slug})
@@ -98,7 +102,7 @@ class Product(models.Model):
             raise MinResolutionErrorExeption('Resolution of image less than minimum!')
         if img.height > max_height or img.width > max_width:
             new_img = img.convert('RGB')
-            resized_new_img = new_img.resize((200, 200), Image.ANTIALIAS)
+            resized_new_img = new_img.resize(self.MIN_RESOLUTION, Image.ANTIALIAS)
             filestream = BytesIO()
             resized_new_img.save(filestream, 'JPEG', quality=90)
             filestream.seek(0)
@@ -136,8 +140,10 @@ class Smartphone(Product):
     resolution = models.CharField(max_length=255, verbose_name='resolution')
     accum_volume = models.CharField(max_length=255, verbose_name='battery volume')
     ram = models.CharField(max_length=255, verbose_name='RAM')
-    sd = models.BooleanField(default=True)
-    sd_volume = models.CharField(max_length=255, verbose_name='Max capacity of sd')
+    sd = models.BooleanField(default=True, verbose_name='Cart exists?')
+    sd_volume = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name='Max capacity of sd'
+    )
     main_cam_mp = models.CharField(max_length=255, verbose_name='main camera')
     frontal_cam_mp = models.CharField(max_length=255, verbose_name='frontal camera')
 
@@ -149,6 +155,13 @@ class Smartphone(Product):
 
     def get_query_set(self):
         return Smartphone.objects.all().select_related('category')
+
+    # @property
+    # def sd(self):
+    #     if self.sd:
+    #         return 'Yes'
+    #     else:
+    #         return 'No'
 
 
 class CartProduct(models.Model):
@@ -163,7 +176,7 @@ class CartProduct(models.Model):
     final_price = models.DecimalField(max_digits=9, decimal_places=3, verbose_name='final price')
 
     def __str__(self):
-        return f'Cart product {self.product.title}'
+        return f'Cart product {self.content_object.title}'
 
 
 class Cart(models.Model):
@@ -172,6 +185,8 @@ class Cart(models.Model):
     products = models.ManyToManyField(CartProduct, blank=True, related_name='related_cart')
     total_products = models.PositiveIntegerField(default=0)
     final_price = models.DecimalField(max_digits=9, decimal_places=3, verbose_name='final price')
+    in_order = models.BooleanField(default=False)
+    for_anonymous_user = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.id)
@@ -180,7 +195,7 @@ class Cart(models.Model):
 class Customer(models.Model):
 
     user = models.ForeignKey(User, verbose_name='user', on_delete=models.CASCADE)
-    phone =  models.CharField(max_length=20, verbose_name='phone number')
+    phone = models.CharField(max_length=20, verbose_name='phone number')
     address = models.CharField(max_length=255, verbose_name='address')
 
     def __str__(self):
