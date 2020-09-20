@@ -178,8 +178,8 @@ class Smartphone(Product):
     def get_absolute_url(self):
         return get_product_url(self, 'product_detail')
 
-    def get_query_set(self):
-        return Smartphone.objects.all().select_related('category')
+    # def get_queryset(self):
+    #     return Smartphone.objects.all().select_related('category')
 
 
 class CartProduct(models.Model):
