@@ -16,6 +16,8 @@ class SmartphoneAdminForm(ModelForm):
             })
 
     def clean(self):
+        if not self.cleaned_data['sd_volume']:
+            self.cleaned_data['sd'] = False
         if not self.cleaned_data['sd']:
             self.cleaned_data['sd_volume'] = None
         return self.cleaned_data
